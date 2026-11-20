@@ -1,12 +1,103 @@
 <!DOCTYPE html>
 <html lang="en"> 
     <head> 
-    <meta charset="utf-8">
-    <title>Clinical Data Organizer</title>
+        <meta charset="utf-8">
+        <title>Clinical Data Organizer</title>
+
+
+        <style>
+            input{
+                border-radius:20px;
+                padding: 8px 12px;
+            }
+
+            button{
+                border-radius:20px;
+                padding: 8px 16px;
+            }
+
+            input::placeholder{
+                color:#888;
+            }
+
+
+            #search-result {
+                margin-top: 25px;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 15px;
+                background-color: #f8f9fa;
+            }
+
+        </style>
     </head>
 
+    
+
     <body>
-    <h1>Find a patient</h1>
-        <p>Enter a synthetic patient ID to find a record.</p>   
+        <h1>Find a patient</h1>
+        <p>Enter a synthetic patient ID to find a record.</p>
+        <form id="search-form">
+            <label for="patient-id">Patient ID</label>
+            <input type="text" id="patient-id" placeholder="P000" required>
+            <button type="submit">Find Patient</button>
+        </form>
+        
+        <div id="search-result">
+            <h2>Patient Information</h2>
+            <p id="result">No patient selected</p>
+        </div>
+
+
+
+
+
+
+
+        <script>
+            const form = document.getElementById("search-form");
+            const input = document.getElementById("patient-id");
+            const result = document.getElementById("result");
+            form.addEventListener("submit", async function(event) {
+                event.preventDefault();
+
+
+                const patientId = input.value.toUpperCase();
+                // Here you would typically make an API call to fetch patient data
+                // For now, we'll just display the entered ID
+                result.textContent = `Searching for patient with ID: ${patientId}`;
+
+                try{
+                    const response = await fetch(`/patients/${encodeURIComponent(patientId)}`);
+
+                    if(response.status == 404){
+                        result.textContent = "Patient not found.";
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        result.textContent = `API error: ${response.status}`;
+                        return;
+                }
+
+                    const patient = await response.json();
+
+                    let asthmaStatus = "Not Documented";
+                    
+                    if (patient.asthma_history === true) {
+                       asthmaStatus = "History Present";
+                    }
+
+                    else if (patient.asthma_history === false) {
+                       asthmaStatus = "No History";
+                    }
+
+                    result.textContent = `Patient ID: ${patient.id}, Asthma History: ${asthmaStatus}`;
+            } catch(error) {
+                result.textContent = "Error not connect to the API.";
+                console.error(error);
+            }
+        });
+        </script>
     </body>
 </html>
